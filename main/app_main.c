@@ -18,7 +18,7 @@
 #include <esp_wifi.h>
 #include <esp_event.h>
 #include <nvs_flash.h>
-
+#include <driver/gpio.h>
 #include <wifi_provisioning/manager.h>
 
 #ifdef CONFIG_EXAMPLE_PROV_TRANSPORT_BLE
@@ -235,7 +235,7 @@ static void wifi_prov_print_qr(const char *name, const char *username, const cha
 #endif /* CONFIG_APP_WIFI_PROV_SHOW_QR */
     ESP_LOGI(TAG, "If QR code is not visible, copy paste the below URL in a browser.\n%s?data=%s", QRCODE_BASE_URL, payload);
 }
-
+#define GPIO_NUM_23 23
 void app_main(void)
 {
     /* Initialize NVS partition */
@@ -308,6 +308,21 @@ void app_main(void)
     ESP_ERROR_CHECK(wifi_prov_mgr_is_provisioned(&provisioned));
 
 #endif
+    gpio_set_direction(GPIO_NUM_23, GPIO_MODE_INPUT);
+    	if(gpio_get_level(GPIO_NUM_23)== 0)
+    	{
+    		usleep(100000);
+    		if(gpio_get_level(GPIO_NUM_23)== 0)
+    		{
+    			ESP_LOGI(TAG,"Button pressed");
+    			provisioned = false;
+    		}
+    		else
+    		{
+    			ESP_LOGI(TAG,"Button not pressed");
+    			provisioned = true;
+    		}
+    	}
     /* If device is not yet provisioned start provisioning service */
     if (!provisioned) {
         ESP_LOGI(TAG, "Starting provisioning");
